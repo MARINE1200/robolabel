@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt
 class MainWindowUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("内镜序列分段标注与抽帧工具 (MVC架构)")
+        self.setWindowTitle("内镜序列分段标注与抽帧工具")
         self.resize(1200, 800)
         self.setup_ui()
 
@@ -35,7 +35,7 @@ class MainWindowUI(QMainWindow):
         self.shape_input = QLineEdit()
         self.shape_input.setPlaceholderText("请选择原始形状数据 CSV 文件...")
         self.shape_input.setReadOnly(True)
-        self.browse_shape_btn = QPushButton("选择形状CSV")
+        self.browse_shape_btn = QPushButton("选择data.csv")
         shape_layout.addWidget(self.shape_input)
         shape_layout.addWidget(self.browse_shape_btn)
         left_panel.addLayout(shape_layout)
@@ -67,7 +67,7 @@ class MainWindowUI(QMainWindow):
         left_panel.addLayout(label_layout)
 
         # 5. 最终操作：格式化抽帧
-        self.format_btn = QPushButton("完成标注，执行 1Hz 抽帧与形状对齐导出")
+        self.format_btn = QPushButton("完成标注，生成 labeled_data.csv")
         self.format_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;")
         left_panel.addWidget(self.format_btn)
 

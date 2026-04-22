@@ -1,3 +1,12 @@
+'''
+Author: Yazong Wang
+Date: 2026-04-03 16:36:49
+LastEditors: Yazong Wang
+LastEditTime: 2026-04-22 10:56:10
+Description: 
+根据预测标签和原始图像，生成带有科研风 HUD 标签的 MP4 视频。
+每个指令对应一种颜色，标签文本自动换行，背景为半透明磨砂黑框，增强视觉效果和可读性。
+'''
 import cv2
 import os
 
@@ -154,7 +163,7 @@ if __name__ == "__main__":
     # 请修改为你实际运行时的目录
     
     RAW_IMAGES = r"D:\Dataset\DuodenoAutoIntervation\20260402PreERCPData\episode3\img" 
-    LABEL_FILE = r"D:\Dataset\DuodenoAutoIntervation\20260402PreERCPData\episode3\formatted\label.txt"
-    OUTPUT_VIDEO = r".\visualization.mp4"
+    LABEL_FILE = r"D:\Dataset\DuodenoAutoIntervation\20260402PreERCPData\episode3\formatted\label_vis.txt"
+    OUTPUT_VIDEO = r".\visualization_2.mp4"
     
     create_labeled_video(RAW_IMAGES, LABEL_FILE, OUTPUT_VIDEO, fps=30)

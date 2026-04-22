@@ -22,7 +22,7 @@ class AnnotatorController:
         self.ui.browse_shape_btn.clicked.connect(self.browse_shape_csv)
         self.ui.image_list.itemSelectionChanged.connect(self.display_selected_image)
         self.ui.apply_label_btn.clicked.connect(self.apply_labels_to_selection)
-        self.ui.format_btn.clicked.connect(self.execute_format)
+        self.ui.format_btn.clicked.connect(self.execute_export)
 
     def log(self, msg):
         self.ui.log_output.append(msg)
@@ -87,28 +87,29 @@ class AnnotatorController:
             filename = self.data_manager.file_names[row]
             self.ui.image_list.item(row).setText(f"{filename}  [{label_text}]")
 
-    def execute_format(self):
+    def execute_export(self):
         if not self.data_manager.shape_csv_path:
-            QMessageBox.warning(self.ui, "提示", "请先选择原始形状数据 (shape CSV) 才能执行格式化！")
+            QMessageBox.warning(self.ui, "提示", "请先选择包含了运动和形状数据的原始 CSV 文件！")
             return
 
         reply = QMessageBox.question(
             self.ui, '确认操作', 
-            '确定标注完毕，开始抽帧并对齐形状数据吗？',
+            '确定标注完毕，并生成最终的 labeled_data.csv 吗？',
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         
         if reply == QMessageBox.StandardButton.Yes:
-            self.log("\n>>> 开始执行格式化与对齐...")
-            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor) # 鼠标变圈圈
+            self.log("\n>>> 开始处理标签组合与点位重排...")
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             
-            success, result_msg = self.data_manager.format_and_export()
+            # 调用全新的导出函数
+            success, result_msg = self.data_manager.export_labeled_csv()
             
             QApplication.restoreOverrideCursor()
             self.log(result_msg)
             
             if success:
-                QMessageBox.information(self.ui, "完成", "图像抽帧与形状数据对齐已完成！")
+                QMessageBox.information(self.ui, "完成", "数据文件已成功生成！")
             else:
                 QMessageBox.warning(self.ui, "错误", result_msg)
 

@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import io
 
 class DataManager:
     def __init__(self):
@@ -42,27 +43,43 @@ class DataManager:
         return count
 
     def export_labeled_csv(self):
-        """直接读取原始CSV，插入标签列，并重排传感器点位顺序"""
+        """物理级去除末尾逗号，插入标签列，并重排点位顺序"""
         if not self.shape_csv_path or not os.path.exists(self.shape_csv_path):
             return False, "找不到数据 CSV，请先选择包含运动和形状数据的 CSV 文件。"
 
         try:
-            # 1. 读取包含机器人的运动信息与形状信息的原始 CSV
-            df = pd.read_csv(self.shape_csv_path)
-            original_cols = list(df.columns)
-            
-            # 第一列通常为序号 'No.'
-            first_col_name = original_cols[0]
+            # ================= 1. 物理级文本清洗 =================
+            # 读取原始文件的所有行
+            with open(self.shape_csv_path, 'r', encoding='utf-8-sig') as f:
+                raw_lines = f.readlines()
 
-            # 2. 生成对应每一行的 Label 列表
+            cleaned_lines = []
+            for line in raw_lines:
+                # 剥离换行符和末尾可能的空格
+                line_clean = line.rstrip('\n\r ')
+                # 如果以逗号结尾，直接切掉最后一个字符
+                if line_clean.endswith(','):
+                    line_clean = line_clean[:-1]
+                cleaned_lines.append(line_clean)
+
+            # 将清洗后的文本重新拼接成一个大字符串
+            cleaned_csv_text = '\n'.join(cleaned_lines)
+
+            # ================= 2. 读取到 Pandas 中 =================
+            # 使用 io.StringIO 欺骗 pandas，让它以为在读一个格式完美的文件
+            df = pd.read_csv(io.StringIO(cleaned_csv_text))
+            
+            original_cols = list(df.columns)
+            first_col_name = original_cols[0] # 稳稳拿到 'No.'
+
+            # ================= 3. 匹配并写入 Label =================
             labels = []
             for _, row in df.iterrows():
                 try:
                     idx = str(int(row[first_col_name]))
                 except ValueError:
-                    idx = str(row[first_col_name]) # 防止表头有空格等情况
+                    idx = str(row[first_col_name])
 
-                # 匹配 self.annotations 中的文件名字典
                 label = ""
                 for ext in ['.jpg', '.png', '.jpeg']:
                     filename = f"{idx}{ext}"
@@ -71,11 +88,11 @@ class DataManager:
                         break
                 labels.append(label)
 
-            # 3. 在第 1 列和第 2 列之间（索引为1）插入新的 label 列
+            # 在第 1 列和第 2 列之间插入 label
             df.insert(1, 'label', labels)
 
-            # 4. 点位列的正确顺序：1, 2, 5, 3, 6, 4, 7
-            # 区分开基础数据列和点位数据列，应对列名含有空格(如 ' x1')的情况
+            # ================= 4. 重排坐标点位顺序 =================
+            # 正确顺序：1, 2, 5, 3, 6, 4, 7
             base_cols = []
             pt_cols = {i: [] for i in range(1, 8)}
 
@@ -89,18 +106,15 @@ class DataManager:
                 elif c_clean in ['x6', 'y6', 'z6']: pt_cols[6].append(col)
                 elif c_clean in ['x7', 'y7', 'z7']: pt_cols[7].append(col)
                 else:
-                    # 包含 No., label, ud, lr, rot 等前置运动数据
                     base_cols.append(col)
 
-            # 根据指定顺序重组 DataFrame 列序列
-            correct_order = [1, 2, 5, 3, 6, 4, 7]
             new_col_order = list(base_cols)
-            for pt in correct_order:
+            for pt in [1, 2, 5, 3, 6, 4, 7]:
                 new_col_order.extend(pt_cols[pt])
 
             df = df[new_col_order]
 
-            # 5. 导出为 labeled_data.csv
+            # ================= 5. 导出文件 =================
             target_dir = os.path.dirname(self.source_dir)
             out_path = os.path.join(target_dir, "labeled_data.csv")
             

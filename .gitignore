@@ -1,7 +1,0 @@
-*.mp4
-\results\*
-*.gif
-*.jpg
-*.png
-.vscode\*
-__pycache__\*

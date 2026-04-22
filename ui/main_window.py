@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt
 class MainWindowUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("内镜序列分段标注与抽帧工具")
+        self.setWindowTitle("Robolabel")
         self.resize(1200, 800)
         self.setup_ui()
 
